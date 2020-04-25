@@ -1,6 +1,7 @@
-import React from 'react';
-import {useForm} from 'react-hook-form';
+import React, {useState} from 'react';
 import styled from 'styled-components';
+import {Spinner} from 'reactstrap';
+import axios from 'axios';
 
 const Container= styled.div`
     display: flex;
@@ -40,7 +41,7 @@ const ContainerForm= styled.div`
         border-radius: 10px;
         margin-top: 2%;
         margin-bottom: 3%;
-        width: 50%;
+        width: 40%;
         font-size: calc(6px + 2vw);
         margin-left: 10px;
         border: 3px solid #FFFFFF;
@@ -81,25 +82,38 @@ const ContainerForm= styled.div`
 `;
 
 
-export default function LoginForm() {
-    const { register, handleSubmit } = useForm()
-    const onSubmit = data => console.log(data)
+export default function LoginForm(prop) {
+    const [data,setData]= useState({username:'', password:''});
+    const [login,setLogin]= useState(false);
+    
+    function Submit(e){
+        e.preventDefault();
+        setLogin(!login);
+        axios.post('http://localhost:5000/api/login',data)
+        .then(res=> {
+            console.log(res);
+            localStorage.setItem('token', res.data.payload);
+            setTimeout(()=>prop.history.push('/friendList'),1000);})
+        .catch(err=> console.error(err));
+        
+    };
      
     return ( 
         <Container>
             <Image  src='https://c.stocksy.com/a/yiv300/z9/936880.jpg' /> 
-      <Form onSubmit={handleSubmit(onSubmit)}>
+      <Form onSubmit={Submit}>
           <ContainerForm>
             <h1> Friends <span style={{color: 'white'}}>&</span> Connect </h1>
             <div>
             <label> Username: </label>
-            <input name="userName" ref={register} /> 
+            <input onChange={(e)=> setData({...data,username: e.target.value})} name="userName" /> 
             </div>
             <div>
             <label> Password: </label>
-            <input name="passWord" type='password' ref={register} />
+            <input name="passWord" onChange={(e)=> setData({...data, password: e.target.value})} type='password'  />
             </div>
-            <button name='submit'> Login</button>
+            {login ? <Spinner color="info" /> : <button name='submit'> Login </button>} 
+            
             
           </ContainerForm>
           
